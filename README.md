@@ -39,15 +39,4 @@ Sample Output
 ```
 
 # Design
-Because we are dealing with a Sierpinski Triangle that is graphed onto asterisks, we can notice that any equilateral triangle can be represented as sequences of $n = {1,2,3,...,n}$, like so for $n = 8$:
-```
-*
-**
-***
-****
-*****
-******
-*******
-********
-```
-By removing asterisks and adding spaces in between 
+(Website Link)[]

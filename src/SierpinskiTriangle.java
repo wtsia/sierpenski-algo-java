@@ -9,85 +9,162 @@ import java.io.*;
  *
  * @author Winston Tsia
  * @since August 27, 2023
+ *
+ *
+ * matrix of char
+ *
+ *16               *1
+ *15              * *2
+ *14             *   *3
+ *12            * * * *4
+ *12           *       *
+ *11          * *     * *
+ *10         *   *   *   *
+ *9         * * * * * * * *
+ *8        *               *
+ *7       * *             * *
+ *6      *   *           *   *
+ *5     * * * *         * * * *
+ *4    *       *       *       *
+ *3   * *     * *     * *     * *
+ *2  *   *   *   *   *   *   *   *
+ *1 * * * * * * * * * * * * * * * *
+ *
  */
 class SierpinskiTriangle {
-    /**
-     * helper function to call other methods and draw triangle
-     * @param sideLength
-     * @return
-     */
     private static void drawSierpinski(int sideLength, int depth) {
-        double[][] triangle = sierpinskiGenerator(sideLength, depth);
-        sierpinskiDivider(triangle, depth);
-        // print
-    }
+        char[] triangle = sierpinskiGenerator(sideLength);
+        int type = 1;
+        triangle = sierpinskiDivider(triangle, sideLength, type, depth);
 
-    /**
-     *
-     * @param inputTriangle
-     * @param depth
-     * @return
-     */
-    private static double[][] sierpinskiDivider(double[][] inputTriangle, int depth) {
+        // Print char array into completed triangle
+        int currentRowLength = 1;
+        int currentIndex = 0;
+
+        for (int row = 0; row < sideLength; row++) {
+            // Print leading spaces for alignment
+            for (int space = 0; space < sideLength - row - 1; space++) {
+                System.out.print(" ");
+            }
+            // Print characters on the current row
+            for (int i = 0; i < currentRowLength; i++) {
+                System.out.print(triangle[currentIndex]);
+                if (currentIndex < triangle.length - 1) {
+                    currentIndex++;
+                }
+            }
+            // Move to the next row
+            System.out.println();
+            currentRowLength += 2;
+        }
+    }
+    private static char[] sierpinskiDivider(char[] inputTriangle, int sideLength, int type, int depth) {
         if (depth == 0) {
             return inputTriangle;
-        };
+        }
 
-        double[][]triangleMidpoint = new double[4][];
-        triangleMidpoint[0]= midpoint(inputTriangle[0], inputTriangle[1]);
-        triangleMidpoint[1]= midpoint(inputTriangle[0], inputTriangle[2]);
-        triangleMidpoint[2]= midpoint(inputTriangle[1], inputTriangle[2]);
+        // Generate initial coordinate
+        int midpointLength = midpoint(sideLength, 0);
+        int indexRemoval;
 
-        // substitute data into initial triangle's last empty array for segment removal w/ height and length
-        inputTriangle[3][0] = triangleMidpoint[0][0];
-        inputTriangle[3][1] = triangleMidpoint[1][0] - triangleMidpoint[0][0];
+        // 1 = start, 2 = sub top, 3 = sub bottom
+        if (type == 1) {
+            indexRemoval = arithmeticSumOdd(midpointLength) + 1; // first index
+        } else if (type == 2) {
+            indexRemoval = arithmeticSumOdd(midpointLength); // top triangle
+        } else {
+            indexRemoval = arithmeticSumOdd(midpointLength); // bottom triangles
+        }
 
-        double[][]subTriangle1 = new double[4][];
-        subTriangle1[0] = inputTriangle[0];
-        subTriangle1[1] = triangleMidpoint[1];
-        subTriangle1[2] = triangleMidpoint[2];
+        int amountRemoved = midpointLength * 2 - 1;
+        int counter = midpointLength;
 
-        double[][]subTriangle2 = new double[4][];
-        subTriangle2[0] = triangleMidpoint[0];
-        subTriangle2[1] = inputTriangle[1];
-        subTriangle2[2] = triangleMidpoint[1];
-
-        double[][]subTriangle3 = new double[4][];
-        subTriangle3[0] = triangleMidpoint[2];
-        subTriangle3[1] = triangleMidpoint[1];
-        subTriangle3[2] = inputTriangle[2];
-
-        sierpinskiDivider(subTriangle1, depth - 1);
-        sierpinskiDivider(subTriangle2, depth - 1);
-        sierpinskiDivider(subTriangle3, depth - 1);
-
+        for (int i = 0; i < 2; i++) {
+            int tempNum = 2;
+            int loopCounter = 0;
+            for (int n = indexRemoval; n < indexRemoval + amountRemoved; n++) {
+                inputTriangle[n] = ' ';
+            }
+            for (int j = indexRemoval + i * amountRemoved + (int) Math.pow(2, 3 + i); j < indexRemoval + (i + 2) * amountRemoved + tempNum; j++) {
+                inputTriangle[j] = ' ';
+                loopCounter++;
+                if (loopCounter % 2 == 1) {
+                    tempNum *= 3;
+                } else {
+                    tempNum *= 2;
+                }
+            }
+        }
+        // indexRemoval + 0*amountRemoved + 0*(int) Math.pow(2, 3 + i)
+        // indexRemoval + (0 + 1)*amountRemoved + 0*j < indexRemoval + 0 * (i + 2) * amountRemoved +
+        for (int n = indexRemoval; n < indexRemoval + amountRemoved + 0; n++) {
+            inputTriangle[n] = ' ';
+        }
+        for (int j = indexRemoval + amountRemoved + 4; j < indexRemoval + 2*amountRemoved + 2; j++) {
+          inputTriangle[j] = ' '; // 2
+        }
+        for (int k = indexRemoval + 2*amountRemoved + 8 + 2; k < indexRemoval + 3*amountRemoved + 2 * 3; k++) {
+            inputTriangle[k] = ' '; // 3
+        }
+        for (int l = indexRemoval + 3*amountRemoved + 16 + 2; l < indexRemoval + 4*amountRemoved + 10; l++) {
+            inputTriangle[l] = ' '; // 3
+            System.out.println(l);
+        }
         return inputTriangle;
     };
 
     /**
-     * Constructs a sierpinski triangle using input sideLength for a coordinate system stored in a 2-dimensional array
-     * with the 4th element used for storing the distance between the midpoints.
-     * @param sideLength
-     * @return A 2-dimensional array with the dimensions of an equilateral triangle of `sideLength` length
+     * Generates a Sierpinski triangle pattern as a character array with the given triangle size.
+     *
+     * @param length The number of char for the Sierpinski triangle. It must be a positive integer.
+     * @return A character array representing a Sierpinski triangle pattern with 'n' units for length.
+     * @throws IllegalArgumentException if 'n' is not a positive integer.
      */
-    private static double[][] sierpinskiGenerator(int sideLength, int depth) {
-        // Triangle formed from bottom left at origin (0,0), midpoint between left and top, top with x,y coord, ...
-        double[][] baseTriangle = new double[depth*6][];
-        baseTriangle[0] = new double[]{0, 0};
-        baseTriangle[1] = new double[]{sideLength / 2.0, Math.sqrt(3) / 2.0 * sideLength};
-        baseTriangle[2] = new double[]{sideLength, 0};
-        baseTriangle[3] = new double[]{0, 0}; // initialize removal height and removal length as 0
+    private static char[] sierpinskiGenerator(int length) {
+        int arrayLength = arithmeticSum(length);
+        char[] baseTriangle = new char[arrayLength];
+
+        for (int i = 0; i < arrayLength; i++) {
+                baseTriangle[i] = '*';
+        }
+        System.out.println("Size of array input: " + arrayLength + ", and size of actual:" + baseTriangle.length);
         return baseTriangle;
     };
 
     /**
+     * Computes the sum of the first 'n' positive integers using the arithmetic series formula.
      *
-     * @param A
-     * @param B
-     * @return a single array with 2 elements, which are the midpoint between the coordinates stored in A and B
+     * @param n The number of terms to include in the arithmetic sum. It must be a non-negative integer.
+     * @return The sum of the first 'n' positive integers using the arithmetic series formula.
+     * @throws IllegalArgumentException if 'n' is a negative integer.
      */
-    private static double[] midpoint(double[] A, double[] B) {
-        return new double[]{ Math.abs(A[0] + B[0]) / 2.0 , Math.abs(A[1] + B[1]) / 2.0};
+    private static int arithmeticSum(int n) {
+        return n * (n + 1) / 2;
+    };
+
+    /**
+     * Calculates the sum of odd numbers in an arithmetic sequence up to a given term.
+     *
+     * This method takes an integer 'n' and returns the sum of the first 'n' odd numbers in an
+     * arithmetic sequence. The sequence starts with 1 and increments by 2 for each term.
+     *
+     * @param n The number of terms in the sequence to consider.
+     * @return The sum of the first 'n' odd numbers in the arithmetic sequence.
+     * @throws IllegalArgumentException If 'n' is less than 1.
+     */
+    private static int arithmeticSumOdd(int n) {
+        return n * n;
+    }
+
+    /**
+     * Computes the midpoint between two double values.
+     *
+     * @param x1 The first double value.
+     * @param x2 The second double value.
+     * @return The midpoint between 'x1' and 'x2' as a double value.
+     */
+    private static int midpoint(int x1, int x2) {
+        return Math.abs(x1 + x2) / 2;
     };
 
     public static void main(String[] args) {
